@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.affiliate.mapper.AffAffiliateCommissionRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.c88.affiliate.pojo.entity.AffAffiliateCommissionRecord">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="agentId" column="agent_id" jdbcType="BIGINT"/>
+            <result property="agentUsername" column="agent_username" jdbcType="VARCHAR"/>
+            <result property="verifyDate" column="verify_date" jdbcType="VARCHAR"/>
+            <result property="activeMembers" column="active_members" jdbcType="INTEGER"/>
+            <result property="memberWinloss" column="member_winloss" jdbcType="DECIMAL"/>
+            <result property="marketingFee" column="marketing_fee" jdbcType="DECIMAL"/>
+            <result property="platformFee" column="platform_fee" jdbcType="DECIMAL"/>
+            <result property="netProfit" column="net_profit" jdbcType="DECIMAL"/>
+            <result property="commissionRate" column="commission_rate" jdbcType="INTEGER"/>
+            <result property="currentCommission" column="current_commission" jdbcType="DECIMAL"/>
+            <result property="status" column="status" jdbcType="TINYINT"/>
+            <result property="difference" column="difference" jdbcType="DECIMAL"/>
+            <result property="totalDifference" column="total_difference" jdbcType="DECIMAL"/>
+            <result property="totalCommission" column="total_commission" jdbcType="DECIMAL"/>
+            <result property="parentId" column="parent_id" jdbcType="BIGINT"/>
+            <result property="level" column="level" jdbcType="INTEGER"/>
+            <result property="parentUsername" column="parent_username" jdbcType="VARCHAR"/>
+            <result property="awardAmount" column="award_amount" jdbcType="DECIMAL"/>
+            <result property="rechargeAwardAmount" column="recharge_award_amount" jdbcType="DECIMAL"/>
+            <result property="lastDifference" column="last_difference" jdbcType="DECIMAL"/>
+            <result property="issueDate" column="issue_date" jdbcType="TIMESTAMP"/>
+            <result property="verifyStatus" column="verify_status" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,agent_id,agent_username,verify_date,
+        active_members,member_winloss,marketing_fee,
+        platform_fee,net_profit,commission_rate,
+        current_commission,status,difference,
+        total_difference,total_commission,parent_id,level,parent_username,award_amount,recharge_award_amount,
+            last_difference,issue_date,verify_status
+    </sql>
+    <insert id="insertBatch">
+        insert into aff_affiliate_commission_record (agent_id,agent_username,verify_date,
+                                                     active_members,member_winloss,marketing_fee,
+                                                     platform_fee,net_profit,commission_rate,
+                                                     current_commission,status,difference,
+                                                     total_difference,total_commission,parent_id,level,parent_username,state
+                                                     ,award_amount,recharge_award_amount,last_difference,verify_status)
+        values
+            <foreach collection="list" item="record" separator=",">
+                (#{record.agentId},#{record.agentUsername},#{record.verifyDate},#{record.activeMembers},#{record.memberWinloss},#{record.marketingFee}
+                ,#{record.platformFee},#{record.netProfit},#{record.commissionRate}
+                ,#{record.currentCommission},#{record.status},#{record.difference},#{record.totalDifference},#{record.totalCommission},#{record.parentId},#{record.level},#{record.parentUsername},#{record.state}
+                ,#{record.awardAmount},#{record.rechargeAwardAmount},#{record.lastDifference},#{record.verifyStatus})
+            </foreach>
+    </insert>
+</mapper>

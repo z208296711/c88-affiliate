@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.affiliate.mapper.AffMemberTransactionsMapper">
+
+    <select id="findSwiftMembersTransaction"
+            resultType="com.c88.affiliate.pojo.vo.SwiftMemberVO"
+            parameterType="com.c88.affiliate.pojo.form.SearchSwiftAffiliateForm">
+        select
+        am.member_id as memberId,
+        am.member_username as memberUsername,
+        am.parent_username as parentUsername,
+        sum(recharge_amount) as recharge,
+        sum(withdraw_amount) as withdraw,
+        sum(win_loss) as winLoss
+        FROM aff_affiliate_member am
+        left join aff_member_transactions mt on am.member_id = mt.member_id and mt.type in (1,2,3)
+        <if test="param2.startTime != null">
+            and mt.gmt_create <![CDATA[ >= ]]> #{param2.startTime}
+        </if>
+        <if test="param2.endTime != null">
+            and mt.gmt_create <![CDATA[ <= ]]> #{param2.endTime}
+        </if>
+        where 1=1
+        <if test="param2.parentUsername != null">
+            and am.parent_username = #{param2.parentUsername}
+        </if>
+        <if test="param2.memberUsername != null">
+            and am.member_username = #{param2.memberUsername}
+        </if>
+        group by am.member_id, am.member_username, am.parent_username
+        <if test="param2.minWinLoss != null or param2.maxWinLoss != null">
+            having 1 = 1
+            <if test="param2.minWinLoss != null">
+                and IFNULL(sum(win_loss), 0) <![CDATA[ >= ]]> #{param2.minWinLoss}
+            </if>
+            <if test="param2.maxWinLoss != null">
+                and IFNULL(sum(win_loss), 0) <![CDATA[ <= ]]> #{param2.maxWinLoss}
+            </if>
+        </if>
+    </select>
+
+
+
+    <select id="findAffiliateMembersTransaction"
+            resultType="com.c88.affiliate.pojo.vo.H5AffiliateMemberVO"
+            parameterType="com.c88.affiliate.pojo.form.SearchAffiliateMemberForm">
+        select am.member_id as memberId,
+        am.member_username as username,
+        JSON_ARRAYAGG(l.name) as labels
+        from aff_affiliate_member am
+        left join aff_member_label ml on am.member_id = ml.member_id
+        join aff_label l on l.id = ml.label_id
+        where 1 = 1
+        and am.parent_id = #{param3}
+        <if test="param2.username != null and param2.username != ''">
+            and am.member_username = #{param2.username}
+        </if>
+        <if test="param2.registerStartTime != null">
+            and am.register_time <![CDATA[ >= ]]> #{param2.registerStartTime}
+        </if>
+        <if test="param2.registerEndTime != null">
+            and am.register_time <![CDATA[ <= ]]> #{param2.registerEndTime}
+        </if>
+        <if test="param2.labels != null">
+            and ( ml.label_id in
+            <foreach collection="param2.labels" open="(" separator="," close=")" item="label">
+                #{label}
+            </foreach>
+            <foreach collection="param2.labels" item="label">
+                <if test="label == -1">
+                    or ml.label_id is null
+                </if>
+            </foreach>
+            <foreach collection="param2.labels" item="label">
+                <if test="label == 0">
+                    or ml.label_id is not null
+                </if>
+            </foreach>
+            )
+        </if>
+        group by am.member_id
+    </select>
+
+    <select id="findAffiliateTeamMembersTransaction"
+            resultType="com.c88.affiliate.pojo.vo.H5AffiliateTeamMemberVO"
+            parameterType="com.c88.affiliate.pojo.form.SearchAffiliateTeamMemberForm">
+        ( select
+        am.parent_username as parentUsername,
+        am.member_username as username,
+        IFNULL(sum(recharge_amount), 0) as recharge,
+        IFNULL(sum(withdraw_amount), 0) as withdrawal,
+        IFNULL(sum(win_loss) * -1, 0) as winLoss
+        from aff_affiliate_member am
+        left join aff_member_transactions mt on am.member_id = mt.member_id
+        and mt.type in (1,2,3,6)
+        <if test="param2.startTime != null">
+            and mt.gmt_create <![CDATA[ >= ]]> #{param2.startTime}
+        </if>
+        <if test="param2.endTime != null">
+            and mt.gmt_create <![CDATA[ <= ]]> #{param2.endTime}
+        </if>
+        where 1 = 1
+        and am.parents like CONCAT(#{param3}, '%')
+        <if test="param2.parentUsername != null and param2.parentUsername != ''">
+            and am.parent_username = #{param2.parentUsername}
+        </if>
+        <if test="param2.username != null and param2.username != ''">
+            and am.member_username = #{param2.username}
+        </if>
+        <if test="param2.registerStartTime != null">
+            and am.register_time <![CDATA[ >= ]]> #{param2.registerStartTime}
+        </if>
+        <if test="param2.registerEndTime != null">
+            and am.register_time <![CDATA[ <= ]]> #{param2.registerEndTime}
+        </if>
+        group by am.member_username
+        <if test="param2.minRecharge != null or param2.maxRecharge != null">
+            having 1 = 1
+            <if test="param2.minRecharge != null">
+                and IFNULL(sum(recharge_amount), 0) <![CDATA[ >= ]]> #{param2.minRecharge}
+            </if>
+            <if test="param2.maxRecharge != null">
+                and IFNULL(sum(recharge_amount), 0) <![CDATA[ <= ]]> #{param2.maxRecharge}
+            </if>
+        </if>
+        )
+        union
+        (
+        select
+        am.parent_username as parentUsername,
+        am.member_username as username,
+        IFNULL(sum(recharge_amount), 0) as recharge,
+        IFNULL(sum(withdraw_amount), 0) as withdrawal,
+        IFNULL(sum(win_loss) * -1, 0) as winLoss
+        from aff_affiliate_member am
+        left join aff_member_transactions mt on am.member_id = mt.member_id
+        and mt.type in (1,2,3,6)
+        <if test="param2.startTime != null">
+            and mt.gmt_create <![CDATA[ >= ]]> #{param2.startTime}
+        </if>
+        <if test="param2.endTime != null">
+            and mt.gmt_create <![CDATA[ <= ]]> #{param2.endTime}
+        </if>
+        where 1 = 1
+        and am.parent_id = #{param3}
+        <if test="param2.parentUsername != null and param2.parentUsername != ''">
+            and am.parent_username = #{param2.parentUsername}
+        </if>
+        <if test="param2.username != null and param2.username != ''">
+            and am.member_username = #{param2.username}
+        </if>
+        <if test="param2.registerStartTime != null">
+            and am.register_time <![CDATA[ >= ]]> #{param2.registerStartTime}
+        </if>
+        <if test="param2.registerEndTime != null">
+            and am.register_time <![CDATA[ <= ]]> #{param2.registerEndTime}
+        </if>
+        group by am.member_username
+        <if test="param2.minRecharge != null or param2.maxRecharge != null">
+            having 1 = 1
+            <if test="param2.minRecharge != null">
+                and IFNULL(sum(recharge_amount), 0) <![CDATA[ >= ]]> #{param2.minRecharge}
+            </if>
+            <if test="param2.maxRecharge != null">
+                and IFNULL(sum(recharge_amount), 0) <![CDATA[ <= ]]> #{param2.maxRecharge}
+            </if>
+        </if>
+        )
+    </select>
+
+    <select id="findMemberPlayRecordWithoutStatus"
+            resultType="com.c88.affiliate.pojo.vo.H5MemberPlayingRecordVO"
+            parameterType="com.c88.affiliate.pojo.form.SearchMemberPlayingRecordForm">
+        select
+        u.member_username as username,
+        u.game_name as gameName,
+        u.platform_code as platformCode,
+        u.game_category_code as gameCategoryCode,
+        u.game_id as gameId,
+        u.bet_amount as betAmount,
+        u.valid_bet_amount as validBetAmount,
+        u.gmt_create as createTime,
+        case when u.type = 4 then 0 else settle end settle,
+        u.type status
+        from aff_member_transactions u
+        where u.id in
+        (select max(id) from aff_member_transactions
+        where type in(3,4) and transaction_serial is not null
+        <if test="param2.startTime != null">
+            and gmt_create <![CDATA[ >= ]]> #{param2.startTime}
+        </if>
+        <if test="param2.endTime != null">
+            and gmt_create <![CDATA[ <= ]]> #{param2.endTime}
+        </if>
+        <if test="param2.affiliateName != null">
+            and parent_username like concat('%',#{param2.affiliateName},'%')
+        </if>
+        <if test="param2.username != null and param2.username != ''">
+            and member_username like concat('%',#{param2.username},'%')
+        </if>
+        <if test="param2.platformCode != null">
+            and platform_code = #{param2.platformCode}
+        </if>
+        <if test="param2.gameCategoryCode != null">
+            and game_category_code = #{param2.gameCategoryCode}
+        </if>
+        <if test='!param2.parentIds.isEmpty()'>
+            AND parent_id in
+            <foreach collection="param2.parentIds" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        group by transaction_serial
+        )
+        order by u.gmt_create desc
+    </select>
+
+    <select id="findMemberPlayRecord"
+            resultType="com.c88.affiliate.pojo.vo.H5MemberPlayingRecordVO"
+            parameterType="com.c88.affiliate.pojo.form.SearchMemberPlayingRecordForm">
+        select
+        u.member_username as username,
+        u.game_name as gameName,
+        u.platform_code as platformCode,
+        u.game_category_code as gameCategoryCode,
+        u.game_id as gameId,
+        u.bet_amount as betAmount,
+        u.valid_bet_amount as validBetAmount,
+        u.gmt_create as createTime,
+        case when u.type = 4 then 0 else settle end settle,
+        u.type status
+        from aff_member_transactions u
+        <where>
+            <if test="param2.startTime != null">
+                and u.gmt_create <![CDATA[ >= ]]> #{param2.startTime}
+            </if>
+            <if test="param2.endTime != null">
+                and u.gmt_create <![CDATA[ <= ]]> #{param2.endTime}
+            </if>
+            <if test="param2.status != 0">
+                and u.type = #{param2.status}
+            </if>
+            <if test="param2.affiliateName != null">
+                and u.parent_username like concat('%',#{param2.affiliateName},'%')
+            </if>
+            <if test="param2.username != null and param2.username != ''">
+                and u.member_username like concat('%',#{param2.username},'%')
+            </if>
+            <if test="param2.platformCode != null">
+                and u.platform_code = #{param2.platformCode}
+            </if>
+            <if test="param2.gameCategoryCode != null">
+                and u.game_category_code = #{param2.gameCategoryCode}
+            </if>
+            <if test='!param2.parentIds.isEmpty()'>
+                AND u.parent_id in
+                <foreach collection="param2.parentIds" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        order by u.gmt_create desc
+    </select>
+
+    <select id="findAffiliateMemberInfo"
+            resultType="com.c88.affiliate.pojo.vo.AffiliateMemberInfoVO"
+            parameterType="com.c88.affiliate.pojo.form.FindAffiliateMemberInfoForm">
+        select am.member_id                             as memberId,
+               am.member_username                       as username,
+               IFNULL(sum(mt.recharge_amount), 0)       as recharge,
+               IFNULL(sum(mt.withdraw_amount), 0)       as withdraw,
+               IFNULL(sum(mt.award_amount), 0)          as bonus,
+               IFNULL(sum(mt.recharge_award_amount), 0) as rechargeAward,
+               IFNULL(sum(mt.valid_bet_amount), 0)      as validBet,
+               IFNULL(sum(mt.bet_amount), 0)            as bet,
+               0                                        as accountAdjustment,
+               IFNULL(sum(mt.win_loss) * -1, 0)         as winLoss,
+               am.register_time                         as registerTime,
+               am.note                                  as memberNote
+        from aff_affiliate_member am
+                 left join aff_member_transactions mt on am.member_id = mt.member_id
+            and mt.type in (1, 2, 3, 6)
+            and mt.gmt_create between #{startTime,javaType=java.time.LocalDateTime}
+                                                             and #{endTime,javaType=java.time.LocalDateTime}
+        where 1 = 1
+          and am.member_username = #{username}
+        group by am.member_id
+    </select>
+
+    <select id = "sumAffTransactionByPage" resultType="com.c88.affiliate.pojo.vo.AffTransactionCountVO"
+            parameterType="com.c88.affiliate.pojo.form.SearchAffiliateTeamTransForm">
+        select
+            aff.Id as agentId,
+            IFNULL(leftBase.winLoss,0) winLoss,
+            IFNULL(leftBase.rechargeAwardAmount,0) rechargeAwardAmount,
+            IFNULL(leftBase.awardAmount,0) awardAmount,
+            IFNULL(leftBase.platformFee,0) platformFee
+        from  aff_affiliate aff
+        left join (
+        select
+               parent_id,
+                sum(win_loss) winLoss,
+                sum(recharge_award_amount) rechargeAwardAmount,
+                sum(award_amount) awardAmount,
+                sum(platform_fee) platformFee
+        from aff_member_transactions
+        <where>
+            <if test="param2.startTime != null">
+                and gmt_create <![CDATA[ >= ]]> #{param2.startTime}
+            </if>
+            <if test="param2.endTime != null">
+                and gmt_create <![CDATA[ <= ]]> #{param2.endTime}
+            </if>
+            <if test='!param2.parentIds.isEmpty()'>
+                AND parent_id in
+                <foreach collection="param2.parentIds" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        group by parent_id) leftBase
+        on aff.Id = leftBase.parent_id
+        where
+        <if test='!param2.parentIds.isEmpty()'>
+            aff.id in
+            <foreach collection="param2.parentIds" item="id" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

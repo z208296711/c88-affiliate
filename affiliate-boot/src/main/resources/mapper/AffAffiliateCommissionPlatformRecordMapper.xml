@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.affiliate.mapper.AffAffiliateCommissionPlatformRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.c88.affiliate.pojo.entity.AffAffiliateCommissionPlatformRecord">
+            <result property="issueDate" column="issue_date" jdbcType="VARCHAR"/>
+            <result property="agentId" column="agent_id" jdbcType="BIGINT"/>
+            <result property="platformName" column="platform_name" jdbcType="VARCHAR"/>
+            <result property="totalWinloss" column="total_winloss" jdbcType="DECIMAL"/>
+            <result property="platformFee" column="platform_fee" jdbcType="DECIMAL"/>
+            <result property="amount" column="amount" jdbcType="DECIMAL"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        issue_date,agent_id,platform_name,
+        total_winloss,platform_fee,amount
+    </sql>
+    <insert id="insertBatch">
+        insert into aff_affiliate_commission_platform_record (issue_date,agent_id, platform_name,total_winloss,platform_fee,amount)
+        values
+        <foreach collection="list" item="record" separator=",">
+            (#{record.issueDate},#{record.agentId},#{record.platformName},#{record.totalWinloss},#{record.platformFee},#{record.amount})
+        </foreach>
+    </insert>
+</mapper>

@@ -1,0 +1,156 @@
+spring:
+  elasticsearch:
+    uris: dev-c88-internal.hyu.tw:9200
+  shardingsphere:
+    schema:
+      name:
+        affiliate
+    mode:
+      type: Memory
+    datasource:
+      names: affiliate
+      affiliate:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://34.84.138.202:3306/affiliate?serverTimezone=GMT&useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+        username: root
+        password: Y7HJv8Pdd86RtQ92hbPbbhET
+    rules:
+      sharding:
+        tables: #表名
+          aff_member_transactions:
+            actual-data-nodes: affiliate.aff_member_transactions_$->{2022..2023} #分表后需要使用的表
+            table-strategy: #分表策略配置
+              standard:
+                sharding-column: gmt_create  #分表字段
+                shardingAlgorithmName: createtime-day  #分片算法名称
+        sharding-algorithms:
+          createtime-day: #分片算法名称
+            type: CLASS_BASED  # 分片算法配置:自定义类
+            props:
+              strategy: STANDARD
+              algorithmClassName: com.c88.affiliate.config.sharding.CreateTimeMonthTableShardingAlgorithm  #自定义分片类
+    props:
+      # 日志显示具体的SQL
+      sql-show: true
+
+#    sharding:
+#      tables:
+#        aff_member_transactions:
+#          actual-data-nodes: affiliate.aff_member_transactions_$->{2020..2023}_$->{1..12}
+#          table-strategy:
+#            standard:
+#              sharding-column: create_time
+#              precise-algorithm-class-name: io.ian.demo.core.shardingjdbc.DatePreciseShardingAlgorithm
+#              range-algorithm-class-name: io.ian.demo.core.shardingjdbc.DateRangeShardingAlgorithm
+#        t_order_item:
+#          actual-data-nodes: affiliate.t_order_item_$->{2020..2021}_$->{1..12}
+#          table-strategy:
+#            standard:
+#              sharding-column: order_create_time
+#              precise-algorithm-class-name: io.ian.demo.core.shardingjdbc.DatePreciseShardingAlgorithm
+#              range-algorithm-class-name: io.ian.demo.core.shardingjdbc.DateRangeShardingAlgorithm
+#      binding-tables:
+#        - aff_member_transactions
+#      defaultDataSourceName: affiliate
+#      props:
+#        sql:
+#          show: true
+  redis:
+    host: dev-c88-internal.hyu.tw
+    port: 6379
+    password: 4c55365c-009b-477b-ae47-07f15947c164
+    database: 0
+  rabbitmq:
+    host: c88-rabbitmq.c88
+    port: 5672
+    username: default_user_-sfMfhOP_-GyXw-2jFe
+    password: XoieAxsqH1G2aJP8vr7lW6G4HOD-QHSl
+  kafka:
+    listener:
+      ack-mode: MANUAL
+    bootstrap-servers: 10.250.222.1:9092,10.250.222.2:9092,10.250.222.3:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: '*'
+#redisson:
+#  address: redis://dev-c88-internal.hyu.tw:6379
+#  password: 4c55365c-009b-477b-ae47-07f15947c164
+
+mailuser: api
+mailpsw: dfa425a557151e845510a314a34fcd99-523596d9-a4914dd1
+mailurl: https://api.mailgun.net/v3/mail.cmb68.vip/messages
+
+sms.otp.provider.1:
+  apiurl: http://210.211.108.20:8080/onsmsapivoice
+  sender: DAUSO1
+  key: 4348454E4F5450313233343536
+  username: CHENOTP
+  pass: 123456
+
+sms.otp.provider.nuage:
+  apiurl: http://sms.nuage.asia/adsmsapi.php
+  apiKey: 77620f52b18d
+  name: comebetc88
+  pwd: 5729b0daf774
+
+sms.otp.provider.abenla:
+  apiurl: http://api.abenla.com/api/SendSms
+  loginName: AB1PDML
+  pwd: G7RYM9XPN
+  serviceTypeId: 271
+  callBack: false
+
+logging:
+  level:
+    org:
+      springframework:
+        security: debug
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#hystrix
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 60000
+        readTimeout: 10000
+
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 3000
+
+
+#中心任務啟用狀態
+center-task-client:
+  enable: false
+
+#中心任務設定
+xxl:
+  job:
+    executor:
+      ip:
+      log-retention-days: 30
+      app-name: affiliate
+      log-path: ./logs/
+      address:
+      port: 9998
+    accessToken:
+    admin:
+      addresses: http://dev-c88-internal.hyu.tw/xxl-job-admin
+
+agent:
+  promotion:
+    link: https://dev-c88-frontsite.hyu.tw
+    api-url: https://api.reurl.cc/shorten
+    reurl-api-key: 4070ff49d794e13119533b663c974755ecd0bf39969e04df8a38b58d65165567c4f5d6

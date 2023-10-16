@@ -1,0 +1,31 @@
+server:
+  port: 7779
+  servlet:
+    context-path: /affiliate
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  application:
+    name: affiliate
+  main:
+    allow-bean-definition-overriding: true
+
+management:
+  server:
+    port: 17779
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true

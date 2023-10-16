@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.affiliate.mapper.AffiliateMemberMapper">
+
+    <resultMap id="findAffiliateMembersTransactionResultMap" type="com.c88.affiliate.pojo.vo.H5AffiliateMemberVO">
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result column="labels" property="labels" typeHandler="com.c88.affiliate.handler.MemberLabelHandler"/>
+    </resultMap>
+
+    <select id="findMemberByParentId" resultType="com.c88.affiliate.pojo.vo.AffiliateMemberSubVO">
+        select parent_id as parentId,
+        count(1) as count from aff_affiliate_member
+        <where>
+            <if test='parentIds'>
+                AND parent_id in
+                <foreach collection="parentIds" item="id" open="(" close=")" separator=",">
+                    #{id}
+                </foreach>
+            </if>
+        </where>
+        group by parent_id
+    </select>
+
+    <select id="findAffiliateMembers"
+            resultMap="findAffiliateMembersTransactionResultMap"
+            parameterType="com.c88.affiliate.pojo.form.SearchAffiliateMemberForm">
+        select
+        am.member_username as username,
+        (
+            select JSON_ARRAYAGG(al.name)
+            from aff_member_label aml
+            inner join aff_label al on al.id = aml.label_id
+            where aml.member_id = am.member_id
+        ) AS labels
+        from aff_affiliate_member am
+        left join aff_member_label ml on am.member_id = ml.member_id
+        left join aff_label l on l.id = ml.label_id
+        where 1 = 1
+        and am.parent_id = #{param2}
+        <if test="param1.username != null and param1.username != ''">
+            and am.member_username = #{param1.username}
+        </if>
+        <if test="param1.registerStartTime != null">
+            and am.register_time <![CDATA[ >= ]]> CONCAT(#{param1.registerStartTime},' 00:00:00')
+        </if>
+        <if test="param1.registerEndTime != null">
+            and am.register_time <![CDATA[ <= ]]> CONCAT(#{param1.registerEndTime},' 23:59:59')
+        </if>
+        <if test="param1.labels != null">
+            and ( ml.label_id in
+            <foreach collection="param1.labels" open="(" separator="," close=")" item="label">
+                #{label}
+            </foreach>
+            <foreach collection="param1.labels" item="label">
+                <if test="label == -1">
+                    or ml.label_id is null
+                </if>
+            </foreach>
+            <foreach collection="param1.labels" item="label">
+                <if test="label == 0">
+                    or ml.label_id is not null
+                </if>
+            </foreach>
+            )
+        </if>
+        group by am.member_id
+    </select>
+    <select id="findAffiliateTeamMembersTransaction"
+            resultType="com.c88.affiliate.pojo.vo.H5AffiliateTeamMemberVO">
+        select
+        parent_username as parentUsername,
+        member_username as username
+        from aff_affiliate_member
+        where 1 = 1
+        and parents like CONCAT(#{param2}, '%')
+        <if test="param1.parentUsername != null and param1.parentUsername != ''">
+            and parent_username = #{param1.parentUsername}
+        </if>
+        <if test="param1.username != null and param1.username != ''">
+            and member_username = #{param1.username}
+        </if>
+        <if test="param1.registerStartTime != null">
+            and register_time <![CDATA[ >= ]]> CONCAT(#{param1.registerStartTime},' 00:00:00')
+        </if>
+        <if test="param1.registerEndTime != null">
+            and register_time <![CDATA[ <= ]]> CONCAT(#{param1.registerEndTime},' 23:59:59')
+        </if>
+        union
+        select
+        parent_username as parentUsername,
+        member_username as username
+        from aff_affiliate_member
+        where 1 = 1
+        and parent_id = #{param2}
+        <if test="param1.parentUsername != null and param1.parentUsername != ''">
+            and parent_username = #{param1.parentUsername}
+        </if>
+        <if test="param1.username != null and param1.username != ''">
+            and member_username = #{param1.username}
+        </if>
+        <if test="param1.registerStartTime != null">
+            and register_time <![CDATA[ >= ]]> CONCAT(#{param1.registerStartTime},' 00:00:00')
+        </if>
+        <if test="param1.registerEndTime != null">
+            and register_time <![CDATA[ <= ]]> CONCAT(#{param1.registerEndTime},' 23:59:59')
+        </if>
+    </select>
+
+
+</mapper>

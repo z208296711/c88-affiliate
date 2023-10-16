@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.c88.affiliate.mapper.PerformanceReportMapper">
+
+    <resultMap id="BaseResultMap" type="com.c88.affiliate.pojo.entity.PerformanceReport">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="parentId" column="parent_id" jdbcType="BIGINT"/>
+            <result property="username" column="username" jdbcType="VARCHAR"/>
+            <result property="month" column="month" jdbcType="VARCHAR"/>
+            <result property="state" column="state" jdbcType="TINYINT"/>
+            <result property="level" column="level" jdbcType="TINYINT"/>
+            <result property="activitymember" column="activityMember" jdbcType="INTEGER"/>
+            <result property="memberLossNegativeProfit" column="member_loss_negative_profit" jdbcType="DECIMAL"/>
+            <result property="memberSellAmount" column="member_sell_amount" jdbcType="DECIMAL"/>
+            <result property="platformAmount" column="platform_amount" jdbcType="DECIMAL"/>
+            <result property="parentProfit" column="parent_profit" jdbcType="DECIMAL"/>
+            <result property="parentScale" column="parent_scale" jdbcType="DECIMAL"/>
+            <result property="parentCommission" column="parent_commission" jdbcType="DECIMAL"/>
+            <result property="fill" column="fill" jdbcType="DECIMAL"/>
+            <result property="periodFill" column="period_fill" jdbcType="DECIMAL"/>
+            <result property="parentCommissionTotal" column="parent_commission_total" jdbcType="DECIMAL"/>
+            <result property="gmtModified" column="gmt_modified" jdbcType="TIMESTAMP"/>
+            <result property="gmtCreate" column="gmt_create" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,parent_id,username,
+        month,state,level,
+        activityMember,member_loss_negative_profit,member_sell_amount,
+        platform_amount,parent_profit,parent_scale,
+        parent_commission,fill,period_fill,
+        parent_commission_total,gmt_modified,gmt_create
+    </sql>
+</mapper>

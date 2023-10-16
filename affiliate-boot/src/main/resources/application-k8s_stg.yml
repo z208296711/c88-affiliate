@@ -1,0 +1,150 @@
+spring:
+  cloud:
+    kubernetes:
+      client: c88
+  elasticsearch:
+    uris: c88-es-http:9200
+  shardingsphere:
+    schema:
+      name:
+        affiliate
+    mode:
+      type: Memory
+    datasource:
+      names: affiliate
+      affiliate:
+        type: com.zaxxer.hikari.HikariDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        jdbc-url: jdbc:mysql://c88-mysql:3306/affiliate?serverTimezone=GMT&useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+        username: root
+        password: toxnMCaR7ABydiij74QoKNF7
+    rules:
+      sharding:
+        tables: #表名
+          aff_member_transactions:
+            actual-data-nodes: affiliate.aff_member_transactions_$->{2022..2023} #分表后需要使用的表
+            table-strategy: #分表策略配置
+              standard:
+                sharding-column: gmt_create  #分表字段
+                shardingAlgorithmName: createtime-day  #分片算法名称
+        sharding-algorithms:
+          createtime-day: #分片算法名称
+            type: CLASS_BASED  # 分片算法配置:自定义类
+            props:
+              strategy: STANDARD
+              algorithmClassName: com.c88.affiliate.config.sharding.CreateTimeMonthTableShardingAlgorithm  #自定义分片类
+    props:
+      # 日志显示具体的SQL
+      sql-show: true
+
+  redis:
+    password: cc6c1ad6-0fb8-420f-8c05-00afa195b17e
+    database: 0
+    host: c88-redis
+    port: 6379
+  rabbitmq:
+    host: c88-rabbitmq.c88
+    port: 5672
+    username: default_user_waTxIGEPnMjEqg2Q12f
+    password: mNfAlXCjddAfUTNWDQ8R9BtjNs2TX8gT
+  kafka:
+    listener:
+      ack-mode: MANUAL
+    bootstrap-servers: 10.251.222.1:9092,10.251.222.2:9092,10.251.222.3:9092
+    producer:
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring:
+          json:
+            trusted:
+              packages: '*'
+    cache:
+      # 缓存类型 redis、none(不使用缓存)
+      type: redis
+      # 缓存时间(单位：ms)
+      redis:
+        time-to-live: 3600000
+        # 缓存null值，防止缓存穿透
+        cache-null-values: true
+        # 允许使用缓存前缀
+        use-key-prefix: true
+        # 缓存前缀，没有设置使用注解的缓存名称(value)作为前缀，和注解的key用双冒号::拼接组成完整缓存key
+        key-prefix: 'affiliate:'
+
+redisson:
+  address: redis://c88-redis:6379
+  password: cc6c1ad6-0fb8-420f-8c05-00afa195b17e
+
+mailuser: api
+mailpsw: dfa425a557151e845510a314a34fcd99-523596d9-a4914dd1
+mailurl: https://api.mailgun.net/v3/mail.cmb68.vip/messages
+
+sms.otp.provider.1:
+  apiurl: http://210.211.108.20:8080/onsmsapivoice
+  sender: DAUSO1
+  key: 4348454E4F5450313233343536
+  username: CHENOTP
+  pass: 123456
+
+sms.otp.provider.nuage:
+  apiurl: http://sms.nuage.asia/adsmsapi.php
+  apiKey: 77620f52b18d
+  name: comebetc88
+  pwd: 5729b0daf774
+
+sms.otp.provider.abenla:
+  apiurl: http://api.abenla.com/api/SendSms
+  loginName: AB1PDML
+  pwd: G7RYM9XPN
+  serviceTypeId: 271
+  callBack: false
+
+logging:
+  level:
+    org:
+      springframework:
+        security: debug
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#hystrix
+feign:
+  circuitbreaker:
+    enabled: true
+  client:
+    config:
+      default:
+        connectTimeout: 60000
+        readTimeout: 10000
+
+hystrix:
+  command:
+    default:
+      execution.isolation.thread.timeoutInMilliseconds: 3000
+
+#中心任務啟用狀態
+center-task-client:
+  enable: true
+
+#中心任務設定
+xxl:
+  job:
+    executor:
+      ip:
+      log-retention-days: 30
+      app-name: affiliate
+      log-path: ./logs/
+      address:
+      port: 9998
+    accessToken:
+    admin:
+      addresses: http://xxl-job-admin:8088/xxl-job-admin
+
+
+agent:
+  promotion:
+    link: https://stg-c88-frontsite.hyu.tw
+    api-url: https://api.reurl.cc/shorten
+    reurl-api-key: 4070ff49d794e13119533b663c974755ecd0bf39969e04df8a38b58d65165567c4f5d6s

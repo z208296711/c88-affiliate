@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: c88-affiliate
+  cloud:
+    kubernetes:
+      client: c88
+  datasource:
+    url: jdbc:mysql://34.84.138.202:3306/affiliate?serverTimezone=GMT&useUnicode=true&characterEncoding=utf8&useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: root
+    password: Y7HJv8Pdd86RtQ92hbPbbhET
+  redis:
+    host: dev-c88-internal.hyu.tw
+    port: 6379
+    password: 4c55365c-009b-477b-ae47-07f15947c164
+    database: 0
+
+agent:
+  promotion:
+    link: http://localhost/member
+
+
+
